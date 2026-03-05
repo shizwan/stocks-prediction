@@ -6,12 +6,22 @@ from datetime import date, timedelta
 import pandas as pd
 import streamlit as st
 
-from src.backtest import run_simple_backtest, summarize_results
-from src.config import Settings
-from src.finnhub_client import FinnhubClient
-from src.pipeline import fetch_intraday_15m_for_range, classify_days_for_symbol
-from src.yahoo_data import fetch_intraday_15m_yahoo, infer_market_session_yahoo
-from src.filters import FilterConfig, apply_filters
+try:
+    # When run from the project root (e.g. `streamlit run src/ui_app.py`)
+    from src.backtest import run_simple_backtest, summarize_results
+    from src.config import Settings
+    from src.finnhub_client import FinnhubClient
+    from src.pipeline import fetch_intraday_15m_for_range, classify_days_for_symbol
+    from src.yahoo_data import fetch_intraday_15m_yahoo, infer_market_session_yahoo
+    from src.filters import FilterConfig, apply_filters
+except ModuleNotFoundError:
+    # When Streamlit sets the working directory to `src/`
+    from backtest import run_simple_backtest, summarize_results
+    from config import Settings
+    from finnhub_client import FinnhubClient
+    from pipeline import fetch_intraday_15m_for_range, classify_days_for_symbol
+    from yahoo_data import fetch_intraday_15m_yahoo, infer_market_session_yahoo
+    from filters import FilterConfig, apply_filters
 
 
 def _default_dates(days_back: int = 365) -> tuple[date, date]:
