@@ -9,13 +9,15 @@ import yfinance as yf
 from src.data_models import Candle
 
 
-def fetch_intraday_15m_yahoo(
+def _fetch_intraday_yahoo(
     symbol: str,
     start_date: date,
     end_date: date,
+    interval: str,
 ) -> List[Candle]:
     """
-    Fetch 15-minute candles for a symbol from Yahoo Finance.
+    Internal helper to fetch intraday candles for a symbol from Yahoo Finance
+    for an arbitrary interval such as '5m' or '15m'.
 
     This is used as an alternative to Finnhub for local testing when a paid
     intraday feed is not available.
@@ -30,7 +32,7 @@ def fetch_intraday_15m_yahoo(
         # top-level download() for single symbols.
         ticker = yf.Ticker(symbol)
         df = ticker.history(
-            interval="15m",
+            interval=interval,
             start=start_dt,
             end=end_dt,
             auto_adjust=False,
@@ -46,6 +48,8 @@ def fetch_intraday_15m_yahoo(
     utc = pytz.utc
     cet = pytz.timezone("Europe/Berlin")
 
+    minutes = 15 if interval.endswith("15m") or interval == "15m" else 5 if interval == "5m" else 15
+
     for idx, row in df.iterrows():
         index_ts = idx
         # Yahoo typically returns exchange-local timestamps (for ^GDAXI this is CET/CEST).
@@ -56,7 +60,7 @@ def fetch_intraday_15m_yahoo(
             index_ts = index_ts.astimezone(cet)
 
         open_time_utc = index_ts.astimezone(utc)
-        close_time_utc = open_time_utc + timedelta(minutes=15)
+        close_time_utc = open_time_utc + timedelta(minutes=minutes)
 
         candles.append(
             Candle(
@@ -72,6 +76,30 @@ def fetch_intraday_15m_yahoo(
         )
 
     return candles
+
+
+def fetch_intraday_15m_yahoo(
+    symbol: str,
+    start_date: date,
+    end_date: date,
+) -> List[Candle]:
+    """
+    Fetch 15-minute candles for a symbol from Yahoo Finance.
+    """
+
+    return _fetch_intraday_yahoo(symbol, start_date, end_date, interval="15m")
+
+
+def fetch_intraday_5m_yahoo(
+    symbol: str,
+    start_date: date,
+    end_date: date,
+) -> List[Candle]:
+    """
+    Fetch 5-minute candles for a symbol from Yahoo Finance.
+    """
+
+    return _fetch_intraday_yahoo(symbol, start_date, end_date, interval="5m")
 
 
 def infer_market_session_yahoo(symbol: str) -> Tuple[int, int, int, int, str]:

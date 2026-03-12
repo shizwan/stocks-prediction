@@ -13,14 +13,17 @@ def _epoch_seconds(dt: datetime) -> int:
     return int(dt.timestamp())
 
 
-def fetch_intraday_15m_for_range(
+def fetch_intraday_for_range(
     client: FinnhubClient,
     symbol: str,
     start_date: date,
     end_date: date,
+    resolution: str,
+    minutes: int,
 ) -> List[Candle]:
     """
-    Fetch 15-minute candles between two dates (inclusive of start, exclusive of end).
+    Fetch intraday candles between two dates (inclusive of start, exclusive of end)
+    for an arbitrary Finnhub resolution such as '5' or '15'.
     """
 
     utc = pytz.utc
@@ -30,7 +33,7 @@ def fetch_intraday_15m_for_range(
 
     raw = client.get_intraday_candles(
         symbol=symbol,
-        resolution="15",
+        resolution=resolution,
         from_unix=_epoch_seconds(start_dt),
         to_unix=_epoch_seconds(end_dt),
     )
@@ -45,7 +48,7 @@ def fetch_intraday_15m_for_range(
 
     for ts, o, h, l, c, v in zip(t_list, o_list, h_list, l_list, c_list, v_list):
         open_time_utc = datetime.fromtimestamp(ts, tz=utc)
-        close_time_utc = open_time_utc + timedelta(minutes=15)
+        close_time_utc = open_time_utc + timedelta(minutes=minutes)
         candles.append(
             Candle(
                 symbol=symbol,
@@ -60,6 +63,46 @@ def fetch_intraday_15m_for_range(
         )
 
     return candles
+
+
+def fetch_intraday_15m_for_range(
+    client: FinnhubClient,
+    symbol: str,
+    start_date: date,
+    end_date: date,
+) -> List[Candle]:
+    """
+    Fetch 15-minute candles between two dates (inclusive of start, exclusive of end).
+    """
+
+    return fetch_intraday_for_range(
+        client=client,
+        symbol=symbol,
+        start_date=start_date,
+        end_date=end_date,
+        resolution="15",
+        minutes=15,
+    )
+
+
+def fetch_intraday_5m_for_range(
+    client: FinnhubClient,
+    symbol: str,
+    start_date: date,
+    end_date: date,
+) -> List[Candle]:
+    """
+    Fetch 5-minute candles between two dates (inclusive of start, exclusive of end).
+    """
+
+    return fetch_intraday_for_range(
+        client=client,
+        symbol=symbol,
+        start_date=start_date,
+        end_date=end_date,
+        resolution="5",
+        minutes=5,
+    )
 
 
 def classify_candle_color(open_price: float, close_price: float, eps: float = 1e-8) -> CandleColor:
