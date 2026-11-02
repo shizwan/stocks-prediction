@@ -62,6 +62,12 @@ def run_simple_backtest(
         if not open_candle or not close_candle:
             continue
 
+        # Never use a price observed at or before the entry candle's close
+        # as an exit price. Such a trade would incorporate an invalid time
+        # sequence and could manufacture misleading returns.
+        if close_candle.open_time_utc <= open_candle.open_time_utc:
+            continue
+
         scenario = cls.scenario or ""
         direction: str | None = None
 
