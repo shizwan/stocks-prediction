@@ -1,6 +1,23 @@
 # OpenRange Backtest
 
-An experimental Python/Streamlit research tool for inspecting intraday opening-range patterns, classifying two 15-minute candles into scenarios A–D, and running simple research backtests.
+**Reproducible intraday market research — with explicit data-quality checks, transparent assumptions, and testable results.**
+
+[![Python checks](https://github.com/shizwan/stocks-prediction/actions/workflows/tests.yml/badge.svg)](https://github.com/shizwan/stocks-prediction/actions/workflows/tests.yml)
+[![MIT license](https://img.shields.io/badge/code_license-MIT-blue.svg)](LICENSE)
+
+OpenRange Backtest is an experimental Python and Streamlit tool for studying opening-range patterns in 15-minute market candles. It classifies the first two bars of a session into scenarios A–D, runs prototype backtests, and displays interpretable summary statistics.
+
+**Explore:** [Quick start](#run-locally) · [Offline example](#offline-reproducible-example) · [Research methodology](BACKTESTING_OVERVIEW.md) · [Tests](#tests) · [Contributing](CONTRIBUTING.md)
+
+## Why this project exists
+
+Backtests can look convincing even when their inputs are wrong. A missing opening candle, a shifted session timestamp, or an exit that occurs before an entry can distort the results without an obvious error. This project treats those cases as **data or modeling problems to surface**, not gaps to silently fill.
+
+The research prototype focuses on three practical principles:
+
+- **Exact data alignment:** use the expected 15-minute opening timestamps instead of substituting nearby bars.
+- **Defensible trade chronology:** validate entry/exit order and prices before calculating returns.
+- **Reproducibility:** provide deterministic tests and a synthetic offline example that anyone can run without live market-data credentials.
 
 > **Research software only.** Trading results are hypothetical and should not be interpreted as predictions, investment advice, or guaranteed future returns. Data-provider limits, missing candles, timezone mapping and execution assumptions can materially affect results.
 
