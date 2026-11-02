@@ -38,6 +38,16 @@ python -m streamlit run src/ui_app.py
 
 If using Finnhub, supply your API key through the UI or the `FINNHUB_API_KEY` environment setting as supported by the application; never commit real credentials. Data access is subject to provider restrictions.
 
+## Offline reproducible example
+
+Run a small, entirely synthetic example (no live market-data access needed):
+
+```bash
+python -m examples.synthetic_backtest
+```
+
+It simulates one bullish and one bearish session, deducts a configurable round-trip cost, and prints aggregated statistics. These numbers are demonstrative and not evidence of financial performance.
+
 ## Tests
 
 Run deterministic unit tests without a market-data connection:
@@ -63,6 +73,7 @@ The project includes a GitHub Actions workflow that runs these checks on pushes 
 
 - An opening scenario uses two distinct bars at the configured 15-minute timestamps; missing bars are not silently substituted by nearby data.
 - The current session mapping is approximate, and US/EU daylight-saving differences need further validation before claims about accuracy.
+- Gap filters use the previous available trading session per symbol rather than the previous calendar day; this is not yet a substitute for a validated exchange calendar.
 - This project does not yet account comprehensively for slippage, data survivorship, market holidays, exchange-specific market hours, or realistic fills.
 - No production-grade historical result or externally verified adoption claim is presented here.
 
