@@ -257,18 +257,14 @@ def compute_scenario_prediction_stats(
 
 
 def _find_candle_at(candles: List[Candle], hour: int, minute: int) -> Candle | None:
-    target_minutes = hour * 60 + minute
-    best: Candle | None = None
-    best_diff = 9999
+    """Return the candle opening at the exact requested local session time.
 
-    for c in candles:
-        m = c.open_time_utc.hour * 60 + c.open_time_utc.minute
-        diff = abs(m - target_minutes)
-        if diff < best_diff:
-            best_diff = diff
-            best = c
-
-    if best is not None and best_diff <= 30:
-        return best
-
+    Using a nearest-candle tolerance here can silently select the same candle
+    twice when an opening bar is missing, or introduce a later bar into an
+    earlier entry decision. Missing bars must be treated as missing data.
+    """
+    for candle in candles:
+        opened = candle.open_time_utc
+        if opened.hour == hour and opened.minute == minute:
+            return candle
     return None
