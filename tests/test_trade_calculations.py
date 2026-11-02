@@ -51,7 +51,7 @@ class TradeCalculationTests(unittest.TestCase):
         ))
 
     def test_invalid_entry_price_drops_trade(self):
-        candles = [bar(9, 8, 0, 100, 101), bar(9, 8, 15, 101, 0),
+        candles = [bar(9, 8, 0, 100, 101), bar(9, 8, 15, -1, 0),
                    bar(9, 16, 15, 103, 104)]
         classes = classify_days_for_symbol(candles, 9, 0)
         self.assertEqual([], run_simple_backtest(
