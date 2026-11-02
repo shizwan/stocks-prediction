@@ -106,7 +106,7 @@ The function `classify_days_for_symbol` in `pipeline.py` handles this:
    - Find the **second 15-minute candle** 15 minutes after the open (e.g. 09:15).
    - If either is missing or too far in time, skip this day (no scenario).
 
-The lookup allows a small tolerance window (up to 30 minutes difference) to handle provider quirks and daylight-saving edges.
+The lookup now requires exact opening timestamps for both bars (15 minutes apart); missing or misaligned bars are skipped instead of substituting nearby bars. This avoids classifying sessions with incomplete opening data. Daylight-saving differences between exchange timezones still require additional calendar-aware validation.
 
 ---
 
@@ -162,10 +162,10 @@ Given the inferred session:
 The engine:
 
 1. Finds the **entry candle**:
-   - Candle aligned to `open_time + 15 minutes`.
+   - Candle aligned to `open_time + 15 minutes` (exact timestamp required).
    - Uses that candle’s **close** price as `entry_price`.
 2. Finds the **exit candle**:
-   - Candle aligned to `close_time`.
+   - Candle aligned to `close_time` (exact timestamp required, and strictly after the entry candle).
    - Uses that candle’s **close** price as `exit_price`.
 
 If either candle is missing or invalid (e.g. non-positive prices), the day is skipped for trading.
