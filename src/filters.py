@@ -73,6 +73,15 @@ def apply_filters(
         l = min(candle.low for candle in day_candles)
         daily_ohlc[key] = (o, h, l, c)
 
+    # Use the previous available trading session per symbol, not yesterday's
+    # calendar date (which is commonly a weekend or exchange holiday).
+    previous_daily_ohlc: Dict[Tuple[str, date], Tuple[float, float, float, float] | None] = {}
+    latest_by_symbol: Dict[str, Tuple[float, float, float, float]] = {}
+    for key in sorted(daily_ohlc):
+        symbol, _ = key
+        previous_daily_ohlc[key] = latest_by_symbol.get(symbol)
+        latest_by_symbol[symbol] = daily_ohlc[key]
+
     filtered: List[DayClassification] = []
 
     for cls in classifications:
@@ -91,8 +100,7 @@ def apply_filters(
             continue
 
         # Get previous-day OHLC for gap and open-vs-prior filters.
-        prev_key = (cls.symbol, cls.date.fromordinal(cls.date.toordinal() - 1))
-        prev_ohlc = daily_ohlc.get(prev_key)
+        prev_ohlc = previous_daily_ohlc.get(key)
 
         if not _passes_gap_filters(c1, prev_ohlc, filters):
             continue
@@ -213,25 +221,22 @@ def _find_first_two(
     open_hour: int,
     open_minute: int,
 ) -> Tuple[Optional[Candle], Optional[Candle]]:
-    """
-    Find the first two candles around the configured open time.
-    """
+    """Require both distinct 15-minute candles at their expected opening times.
 
-    target_minutes = open_hour * 60 + open_minute
-    # Find nearest candle to the open time.
-    best_idx = -1
-    best_diff = 9999
-    for idx, c in enumerate(day_candles):
-        m = c.open_time_utc.hour * 60 + c.open_time_utc.minute
-        diff = abs(m - target_minutes)
-        if diff < best_diff:
-            best_diff = diff
-            best_idx = idx
-
-    if best_idx == -1 or best_diff > 30:
+    Using the nearest bar or simply the next available list element could
+    silently classify a day with a missing second candle.
+    """
+    first_minutes = open_hour * 60 + open_minute
+    second_minutes = first_minutes + 15
+    if first_minutes < 0 or second_minutes >= 24 * 60:
         return None, None
 
-    c1 = day_candles[best_idx]
-    c2 = day_candles[best_idx + 1] if best_idx + 1 < len(day_candles) else None
+    c1 = next((c for c in day_candles
+               if c.open_time_utc.hour * 60 + c.open_time_utc.minute == first_minutes), None)
+    c2 = next((c for c in day_candles
+               if c.open_time_utc.hour * 60 + c.open_time_utc.minute == second_minutes), None)
+    if c1 is None or c2 is None:
+        return None, None
+    if (c2.open_time_utc - c1.open_time_utc).total_seconds() != 15 * 60:
+        return None, None
     return c1, c2
-
