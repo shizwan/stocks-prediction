@@ -19,4 +19,4 @@ Keep market-data requests out of unit tests; use deterministic fixtures. For cha
 
 Describe the problem, approach, test coverage, and any changed modeling assumptions. Do not commit API keys, market-data licenses, or customer/personal data. Contributions are reviewed before merging.
 
-**Licensing:** The maintainer must select and publish a project-level OSI-approved license after confirming ownership and third-party rights. Until then, do not assume the source is licensed for redistribution or reuse.
+**Licensing:** Original project source code is released under the [MIT License](LICENSE). By submitting a contribution, you represent that you have the right to contribute it under this license. See [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md) for bundled materials not covered by the MIT grant. Do not add code, datasets, documents, or graphics you cannot legally redistribute.

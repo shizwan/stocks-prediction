@@ -81,4 +81,6 @@ The project includes a GitHub Actions workflow that runs these checks on pushes 
 
 See [CONTRIBUTING.md](CONTRIBUTING.md), [SECURITY.md](SECURITY.md), and the [release checklist](docs/RELEASE_CHECKLIST.md).
 
-**Project license not finalized:** Code being publicly visible does not automatically grant redistribution/reuse rights. The project owner must review third-party rights and choose an OSI-approved license before presenting this repository as licensed open source.
+## License
+
+The original application code is available under the [MIT License](LICENSE), copyright (c) 2026 shizwan. See [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md) for bundled PDFs, the Streamline/TradingView SVG, external market data, and other materials that are **not** automatically licensed for reuse under MIT. This project is still an experimental research prototype.
