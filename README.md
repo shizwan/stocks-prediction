@@ -1,67 +1,84 @@
 # OpenRange Backtest
 
-OpenRange Backtest is a configurable opening-range analysis and backtesting tool.
-It tests whether the first 30 minutes of a trading session (two 15-minute candles) –
-optionally combined with filters like gaps, weekday, and bar-size relationships –
-can statistically predict the rest-of-day direction for any symbol your data source supports.
+An experimental Python/Streamlit research tool for inspecting intraday opening-range patterns, classifying two 15-minute candles into scenarios A–D, and running simple research backtests.
 
-This repository is organized into phases. **Phase 1** focuses on a 1-year intraday prototype
-using Yahoo Finance for quick experimentation, with Finnhub support scaffolded for later
-30-year DEU40/DEU40E studies.
+> **Research software only.** Trading results are hypothetical and should not be interpreted as predictions, investment advice, or guaranteed future returns. Data-provider limits, missing candles, timezone mapping and execution assumptions can materially affect results.
 
-## 1. Project Structure
+## Current capabilities
 
-- `requirements.txt` – Python dependencies.
-- `src/` – Application code.
-  - `config.py` – Configuration and environment handling (e.g., Finnhub API key, symbols, date ranges).
-  - `finnhub_client.py` – Lightweight wrapper for the Finnhub REST API.
-  - `data_models.py` – Typed containers for candles and trading days.
-  - `pipeline.py` – High-level functions to fetch, normalize, and classify candles into scenarios A–D.
-  - `backtest.py` – Core backtest engine for Phase 1 (1-year intraday test).
-  - `main.py` – Simple CLI entrypoint to run Phase 1 checks from the command line.
+- Import intraday OHLCV data from Yahoo Finance using `yfinance` (availability depends on provider limits).
+- Scaffold a Finnhub-based data source (requires appropriate API access).
+- Infer approximate market sessions, group candles by market day and classify opening patterns.
+- Evaluate prototype scenario A long / B short trades and report counts, win rates and average net returns.
+- Explore results in a Streamlit UI.
 
-## 2. Environment Setup
+The prototype does **not** implement the planned 30-year data pipeline, robust real-world execution modeling, or systematic validation against all exchange calendars. See [technical overview](BACKTESTING_OVERVIEW.md) for details.
 
-It is recommended to use a virtual environment.
+## Run locally
+
+Prerequisites: Python 3.11 or newer, pip, and internet access for live data fetching.
 
 ```bash
-cd "d:\stock prediction"
+git clone https://github.com/shizwan/stocks-prediction.git
+cd stocks-prediction
 python -m venv .venv
-.venv\Scripts\activate  # PowerShell: .venv\Scripts\Activate.ps1
-pip install -r requirements.txt
 ```
 
-## 3. Configuration
+Activate the environment:
 
-For Finnhub usage (future 30-year study), the engine reads configuration from
-environment variables:
+- macOS/Linux: `source .venv/bin/activate`
+- Windows PowerShell: `.venv\\Scripts\\Activate.ps1`
 
-- `FINNHUB_API_KEY` – Your Finnhub API key.
-- `DEU40_SYMBOL` – Exact Finnhub symbol for DEU40.
-- `DEU40E_SYMBOL` – Exact Finnhub symbol for DEU40E.
-
-Defaults and validation logic are implemented in `config.py`.
-
-## 4. Running the Streamlit UI
-
-Once the environment is set up:
+Install dependencies and start the app:
 
 ```bash
-cd "d:\stock prediction"
+python -m pip install -r requirements.txt
 python -m streamlit run src/ui_app.py
 ```
 
-The UI will:
+If using Finnhub, supply your API key through the UI or the `FINNHUB_API_KEY` environment setting as supported by the application; never commit real credentials. Data access is subject to provider restrictions.
 
-1. Let you choose a data source (Yahoo or Finnhub).
-2. Let you select symbols and a date window.
-3. Infer market session and timezone automatically (for Yahoo symbols).
-4. Apply optional filters (weekday, gaps, open vs prior range, 1st/2nd bar sign and size).
-5. Classify days into A–D scenarios, run the simple backtest, and display summary statistics
-   plus diagnostics about candles, classified days, and total trades.
+## Offline reproducible example
 
-Later phases will:
+Run a small, entirely synthetic example (no live market-data access needed):
 
-- Scale from 1-year to 30-years of DEU40/DEU40E data.
-- Persist cleaned datasets to disk.
-- Produce full statistical reports and visualizations.
+```bash
+python -m examples.synthetic_backtest
+```
+
+It simulates one bullish and one bearish session, deducts a configurable round-trip cost, and prints aggregated statistics. These numbers are demonstrative and not evidence of financial performance.
+
+## Tests
+
+Run deterministic unit tests without a market-data connection:
+
+```bash
+python -m unittest discover -s tests -v
+python -m compileall -q src
+```
+
+The project includes a GitHub Actions workflow that runs these checks on pushes and pull requests.
+
+## Code map
+
+- `src/data_models.py`: candle, scenario and trade data structures
+- `src/yahoo_data.py` and `src/finnhub_client.py`: provider integration
+- `src/pipeline.py`: candle grouping and opening scenario classification
+- `src/backtest.py`: prototype trade simulation and metrics
+- `src/filters.py`: optional filters
+- `src/ui_app.py`: Streamlit interface
+- `BACKTESTING_OVERVIEW.md`: methodology and current system limitations
+
+## Methodology cautions
+
+- An opening scenario uses two distinct bars at the configured 15-minute timestamps; missing bars are not silently substituted by nearby data.
+- The current session mapping is approximate, and US/EU daylight-saving differences need further validation before claims about accuracy.
+- Gap filters use the previous available trading session per symbol rather than the previous calendar day; this is not yet a substitute for a validated exchange calendar.
+- This project does not yet account comprehensively for slippage, data survivorship, market holidays, exchange-specific market hours, or realistic fills.
+- No production-grade historical result or externally verified adoption claim is presented here.
+
+## Contributing and releases
+
+See [CONTRIBUTING.md](CONTRIBUTING.md), [SECURITY.md](SECURITY.md), and the [release checklist](docs/RELEASE_CHECKLIST.md).
+
+**Project license not finalized:** Code being publicly visible does not automatically grant redistribution/reuse rights. The project owner must review third-party rights and choose an OSI-approved license before presenting this repository as licensed open source.
